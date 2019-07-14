@@ -32,6 +32,11 @@ def download_image(link: str, img_id: str, images_dir: str):
 def load_dataset(dataset_file: str) -> pd.DataFrame:
     return pd.read_csv(dataset_file)
 
+def get_already_downloaded(images_dir):
+    images = os.listdir(images_dir)
+    image_ids = [os.path.splitext(image)[0] for image in images]
+    return set(image_ids)
+
 if __name__ == "__main__":
     dataset_dir = os.path.dirname(__file__)
     logname = os.path.join(dataset_dir,'dataset_download.log')
@@ -48,8 +53,11 @@ if __name__ == "__main__":
     dataset_file = os.path.join(dataset_dir, 'metadata.csv')
 
     dataset = load_dataset(dataset_file)
+    already_downloaded = get_already_downloaded(images_dir)
     for index, row in dataset.iterrows():
         img_id = row['imdbId']
+        if img_id in already_downloaded:
+            logging.info(f'Skipping {img_id} since it already exists')
         link = row['Poster']
         logging.info(f'Trying to download {img_id} on index {index}...')
         download_image(link, img_id, images_dir)
