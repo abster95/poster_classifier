@@ -67,7 +67,10 @@ if __name__ == "__main__":
     already_downloaded = get_already_downloaded(images_dir)
     filtered_ds = dataset.imdbId.isin(already_downloaded)
     dataset = dataset[~filtered_ds]
+    img_ids = dataset['imdbId'].values.tolist()
+    urls = dataset['Poster'].values.tolist()
     logging.info(f'Number of images to download:{dataset.shape[0]}')
+    started = []
     for index, row in dataset.iterrows():
         img_id = row['imdbId']
         if img_id in already_downloaded:
@@ -75,5 +78,9 @@ if __name__ == "__main__":
             continue
         link = row['Poster']
         logging.info(f'Trying to download {img_id} on index {index}...')
-        Downloader(link, img_id, images_dir).start()
+        downloader = Downloader(link, img_id, images_dir)
+        downloader.start()
+        started.append(downloader)
+    for thread in started:
+        thread.join()
     logging.info('All done!')
