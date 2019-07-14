@@ -34,7 +34,7 @@ def load_dataset(dataset_file: str) -> pd.DataFrame:
 
 def get_already_downloaded(images_dir):
     images = os.listdir(images_dir)
-    image_ids = [os.path.splitext(image)[0] for image in images]
+    image_ids = [int(os.path.splitext(image)[0]) for image in images]
     return set(image_ids)
 
 class Downloader(Thread):
@@ -63,12 +63,17 @@ if __name__ == "__main__":
     dataset_file = os.path.join(dataset_dir, 'metadata.csv')
 
     dataset = load_dataset(dataset_file)
+    logging.info(f'Number of all images in dataset: {dataset.shape[0]}')
     already_downloaded = get_already_downloaded(images_dir)
+    filtered_ds = dataset.imdbId.isin(already_downloaded)
+    dataset = dataset[~filtered_ds]
+    logging.info(f'Number of images to download:{dataset.shape[0]}')
     for index, row in dataset.iterrows():
         img_id = row['imdbId']
-        if str(img_id) in already_downloaded:
+        if img_id in already_downloaded:
             logging.info(f'Skipping {img_id} since it already exists')
             continue
         link = row['Poster']
         logging.info(f'Trying to download {img_id} on index {index}...')
         Downloader(link, img_id, images_dir).start()
+    logging.info('All done!')
