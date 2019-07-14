@@ -1,9 +1,55 @@
 import os
 import requests
+from PIL import Image
+import logging
+import typing
+import pandas as pd
+
 
 def get_image(link):
-    response = requests.get(link)
-    print('got em')
+    try:
+        response = requests.get(link)
+    except Exception:
+        return None
+    if response.status_code == 200:
+        return response.content
+    else:
+        return None
 
-link = "https://images-na.ssl-images-amazon.com/images/M/MV5BMDU2ZWJlMjktMTRhMy00ZTA5LWEzNDgtYmNmZTEwZTViZWJkXkEyXkFqcGdeQXVyNDQ2OTk4MzI@._V1_UX182_CR0,0,182,268_AL_.jpg"
-get_image(link)
+def get_image_path(img_id: str, images_dir: str):
+    # TODO: Move to utils
+    return os.path.join(images_dir, f'{img_id}.jpg')
+
+def download_image(link: str, img_id: str, images_dir: str):
+    image_data = get_image(link)
+    if not image_data:
+        logging.error(f'Download failed for image:{img_id} with link {link}')
+    else:
+        path = get_image_path(img_id, images_dir)
+        with open(path, 'wb') as fp:
+            fp.write(image_data)
+
+def load_dataset(dataset_file: str) -> pd.DataFrame:
+    return pd.read_csv(dataset_file)
+
+if __name__ == "__main__":
+    dataset_dir = os.path.dirname(__file__)
+    logname = os.path.join(dataset_dir,'dataset_download.log')
+    logging.basicConfig(filename=logname,
+                            filemode='w',
+                            format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                            datefmt='%H:%M:%S',
+                            level=logging.DEBUG)
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    logging.getLogger().addHandler(console)
+    
+    images_dir = os.path.join(dataset_dir, 'images')
+    dataset_file = os.path.join(dataset_dir, 'metadata.csv')
+
+    dataset = load_dataset(dataset_file)
+    for index, row in dataset.iterrows():
+        img_id = row['imdbId']
+        link = row['Poster']
+        logging.info(f'Trying to download {img_id} on index {index}...')
+        download_image(link, img_id, images_dir)
