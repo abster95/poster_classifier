@@ -4,7 +4,7 @@ from PIL import Image
 import logging
 import typing
 import pandas as pd
-
+from threading import Thread
 
 def get_image(link):
     try:
@@ -37,6 +37,16 @@ def get_already_downloaded(images_dir):
     image_ids = [os.path.splitext(image)[0] for image in images]
     return set(image_ids)
 
+class Downloader(Thread):
+    def __init__(self, link: str, img_id: str, images_dir: str):
+        super(Downloader, self).__init__()
+        self.link = link
+        self.img_id = img_id
+        self.images_dir = images_dir
+
+    def run(self):
+        download_image(self.link, self.img_id, self.images_dir)
+
 if __name__ == "__main__":
     dataset_dir = os.path.dirname(__file__)
     logname = os.path.join(dataset_dir,'dataset_download.log')
@@ -56,8 +66,9 @@ if __name__ == "__main__":
     already_downloaded = get_already_downloaded(images_dir)
     for index, row in dataset.iterrows():
         img_id = row['imdbId']
-        if img_id in already_downloaded:
+        if str(img_id) in already_downloaded:
             logging.info(f'Skipping {img_id} since it already exists')
+            continue
         link = row['Poster']
         logging.info(f'Trying to download {img_id} on index {index}...')
-        download_image(link, img_id, images_dir)
+        Downloader(link, img_id, images_dir).start()
