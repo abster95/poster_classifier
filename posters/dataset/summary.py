@@ -18,6 +18,15 @@ def genre_frequency(genres_column) -> typing.Dict[str, int]:
                 genre_to_freq[genre] = genre_to_freq[genre] + 1
     return genre_to_freq
 
+def acceptable_genres_list(genres, cutoff: int = 1000):
+    genre_to_freq = genre_frequency(genres)
+    acceptable = []
+    for genre, freq in genre_to_freq.items():
+        if freq > cutoff:
+            acceptable.append(genre)
+    acceptable.append('Unknown')
+    return acceptable
+
 if __name__ == "__main__":
     dataset_dir = os.path.dirname(__file__)
     dataset_file = os.path.join(dataset_dir, 'metadata.csv')
