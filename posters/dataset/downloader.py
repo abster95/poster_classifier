@@ -3,8 +3,9 @@ import requests
 from PIL import Image
 import logging
 import typing
-import pandas as pd
 from threading import Thread
+
+from posters.util.dataset import get_image_path, get_already_downloaded, load_dataset
 
 def get_image(link):
     try:
@@ -16,9 +17,6 @@ def get_image(link):
     else:
         return None
 
-def get_image_path(img_id: str, images_dir: str):
-    # TODO: Move to utils
-    return os.path.join(images_dir, f'{img_id}.jpg')
 
 def download_image(link: str, img_id: str, images_dir: str):
     image_data = get_image(link)
@@ -29,13 +27,6 @@ def download_image(link: str, img_id: str, images_dir: str):
         with open(path, 'wb') as fp:
             fp.write(image_data)
 
-def load_dataset(dataset_file: str) -> pd.DataFrame:
-    return pd.read_csv(dataset_file)
-
-def get_already_downloaded(images_dir):
-    images = os.listdir(images_dir)
-    image_ids = [int(os.path.splitext(image)[0]) for image in images]
-    return set(image_ids)
 
 class Downloader(Thread):
     def __init__(self, link: str, img_id: str, images_dir: str):
