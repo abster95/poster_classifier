@@ -38,9 +38,9 @@ def accuracy(output, target, thresh=0.7):
         thresholded = (output > thresh).float()
         total += target.size(0)
         num_classes = target.size(1)
-        correct += ((thresholded==target).sum(axis=-1).float() / num_classes).sum().item()
-        fp += ((thresholded==(1-target)).sum(axis=-1).float() / num_classes).sum().item()
-        fn += (((1-thresholded)==target).sum(axis=-1).float() / num_classes).sum().item()
+        correct += ((thresholded==target).sum(dim=-1).float() / num_classes).sum().item()
+        fp += ((thresholded==(1-target)).sum(dim=-1).float() / num_classes).sum().item()
+        fn += (((1-thresholded)==target).sum(dim=-1).float() / num_classes).sum().item()
     return correct/total, fp/total, fn/total
 
 def train(train_loader, model, criterion, optimizer, epoch):
