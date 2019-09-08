@@ -57,9 +57,9 @@ class MoviePosters(Dataset):
 
 def split_dataset(train_percent: float = 0.8):
     dataset_dir = os.path.dirname(__file__)
-    dataset_file = os.path.join(dataset_dir, 'metadata.csv')
-    dataset = load_dataset(dataset_file)
-    ids = dataset['imdbId'].values.tolist()
+    images_dir = os.path.join(dataset_dir, 'images')
+    ids = os.listdir(images_dir)
+    ids = [os.path.splitext(img)[0] for img in ids]
     random.shuffle(ids)
 
     split_index = int(len(ids) * train_percent)
@@ -70,4 +70,4 @@ def split_dataset(train_percent: float = 0.8):
     write_json_to_file(val_split, os.path.join(dataset_dir, 'val_ids.json'))
 
 if __name__ == "__main__":
-    MoviePosters('train')[0]
+    split_dataset()
