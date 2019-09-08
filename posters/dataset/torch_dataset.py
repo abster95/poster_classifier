@@ -81,7 +81,7 @@ class MoviePosters(Dataset):
         # load labels
         labels = np.squeeze(self.dataset.loc[self.dataset['imdbId'] == int(imdb_id), ['Genre']])
         labels = self._one_hot_genre(labels)
-        return preprocessed, labels
+        return preprocessed.cuda(), labels.cuda()
 
 
 def split_dataset(train_percent: float = 0.8):
