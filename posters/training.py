@@ -32,9 +32,9 @@ def accuracy(output, target, thresh=0.5):
     correct = 0.0
     total = 0.0
     with torch.no_grad():
-        thresholded = output > thresh
+        thresholded = (output > thresh).float()
         total += target.size(0)
-        correct += (output==target).sum().item()
+        correct += (thresholded==target).sum().item()
     return correct/total
 
 def train(train_loader, model, criterion, optimizer, epoch):
