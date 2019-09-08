@@ -51,7 +51,7 @@ class MoviePosters(Dataset):
 
     def _one_hot_genre(self, labels):
         # Acceptable genres + unknown
-        one_hot = torch.zeros(len(self.genres)) # pylint: disable=no-member
+        one_hot = torch.zeros(len(self.genres), dtype=np.int64) # pylint: disable=no-member
         if not isinstance(labels, str):
             one_hot[self.genre_to_id['Unknown']] = 1
             return one_hot
@@ -71,7 +71,7 @@ class MoviePosters(Dataset):
         # load image
         img_path = get_image_path(imdb_id, self.image_root)
         if not os.path.exists(img_path):
-            return torch.zeros(IMG_SHAPE_CHW), torch.zeros(len(self.genres))
+            return torch.zeros(IMG_SHAPE_CHW), torch.zeros(len(self.genres), dtype=torch.long)
         img = imageio.imread(img_path)
         if len(img.shape) < 3:
             img = np.stack((img,img,img), axis=-1)
@@ -82,6 +82,7 @@ class MoviePosters(Dataset):
         # load labels
         labels = np.squeeze(self.dataset.loc[self.dataset['imdbId'] == int(imdb_id), ['Genre']])
         labels = self._one_hot_genre(labels)
+        labels = torch.from_numpy(labels)
         return preprocessed, labels
 
 
