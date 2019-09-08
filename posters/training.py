@@ -50,7 +50,8 @@ def accuracy(output, target, thresh=0.7):
 
 def f_score(output, target, thresh=0.5, beta=1):
     with torch.no_grad():
-        prob = output > thresh
+        prob = torch.sigmoid(output)
+        prob = prob > thresh
         label = target > thresh
 
         TP = (prob & label).sum(1).float()
