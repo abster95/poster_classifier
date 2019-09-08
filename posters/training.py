@@ -9,7 +9,6 @@ import time
 BATCH_SIZE = 32
 NUM_WORKERS = 10
 LR = 1e-3
-WRITER = SummaryWriter
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -81,7 +80,6 @@ def train(train_loader, model, criterion, optimizer, epoch):
                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
                 epoch, i, len(train_loader), batch_time=batch_time,
                 data_time=data_time, loss=losses))
-        WRITER.add_scalar('Loss/train', losses.avg, epoch*20 + i)
 
 def validate(val_loader, model, criterion):
     batch_time = AverageMeter()
@@ -109,7 +107,6 @@ def validate(val_loader, model, criterion):
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
                 i, len(val_loader), batch_time=batch_time, loss=losses))
-        WRITER.add_scalar('Loss/val', losses.avg, epoch*20 + i)
 
 if __name__ == "__main__":
 
