@@ -36,7 +36,7 @@ def pad_to_fixed_shape(image, shape=IMG_SHAPE):
 
 
 class MoviePosters(Dataset):
-    def __init__(self, dataset_type: str, cutoff: int = 1000):
+    def __init__(self, dataset_type: str, cutoff: int = 4000):
         dataset_dir = os.path.dirname(__file__)
         dataset_file = os.path.join(dataset_dir, 'metadata.csv')
         self.image_root = os.path.join(dataset_dir, 'images')
