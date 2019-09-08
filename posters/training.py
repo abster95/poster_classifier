@@ -27,20 +27,15 @@ class AverageMeter(object):
         self.count += n
         self.avg = self.sum / self.count
 
-def accuracy(output, target, topk=(1,)):
+def accuracy(output, target, thresh=0.5):
     """Computes the precision@k for the specified values of k"""
-    maxk = max(topk)
-    batch_size = target.size(0)
-
-    _, pred = output.topk(maxk, 1, True, True)
-    pred = pred.t()
-    correct = pred.eq(target.view(1, -1).expand_as(pred))
-
-    res = []
-    for k in topk:
-        correct_k = correct[:k].view(-1).float().sum(0)
-        res.append(correct_k.mul_(100.0 / batch_size))
-    return res
+    correct = 0.0
+    total = 0.0
+    with torch.no_grad():
+        thresholded = output > thresh
+        total += target.size(0)
+        correct += (output==target).sum().item()
+    return correct/total
 
 def train(train_loader, model, criterion, optimizer, epoch):
     batch_time = AverageMeter()
@@ -74,12 +69,15 @@ def train(train_loader, model, criterion, optimizer, epoch):
         batch_time.update(time.time() - end)
         end = time.time()
 
+        accurate = accuracy(output, target_var)
+
         print('Epoch: [{0}][{1}/{2}]\t'
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
-                'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
+                'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                'Accuracy {acc:.4f}'.format(
                 epoch, i, len(train_loader), batch_time=batch_time,
-                data_time=data_time, loss=losses))
+                data_time=data_time, loss=losses, acc=accurate))
 
 def validate(val_loader, model, criterion):
     batch_time = AverageMeter()
@@ -103,10 +101,12 @@ def validate(val_loader, model, criterion):
         batch_time.update(time.time() - end)
         end = time.time()
 
+        accurate = accuracy(output, target_var)
         print('Test: [{0}/{1}]\t'
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-                i, len(val_loader), batch_time=batch_time, loss=losses))
+                'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                'Accuracy {acc:.4f}'.format(
+                i, len(val_loader), batch_time=batch_time, loss=losses, acc=accurate))
 
 if __name__ == "__main__":
 
