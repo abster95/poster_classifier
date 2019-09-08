@@ -62,6 +62,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
+    f1 = AverageMeter()
 
     # switch to train mode
     model.train()
@@ -90,13 +91,13 @@ def train(train_loader, model, criterion, optimizer, epoch):
         batch_time.update(time.time() - end)
         end = time.time()
 
-        f1 = f_score(output, target_var)
+        f1.update(f_score(output, target_var))
 
         print('Epoch: [{0}][{1}/{2}]\t'
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                'F1 {f1:.4f}\t'.format(
+                'F1 {f1.val:.4f} ({f1.avg:.4f})\t'.format(
                 epoch, i, len(train_loader), batch_time=batch_time,
                 data_time=data_time, loss=losses, f1=f1))
 
@@ -122,11 +123,11 @@ def validate(val_loader, model, criterion):
         batch_time.update(time.time() - end)
         end = time.time()
 
-        f1 = f_score(output, target_var)
+        f1.update(f_score(output, target_var))
         print('Test: [{0}/{1}]\t'
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                'F1 {f1:.4f}\t'.format(
+                'F1 {f1.val:.4f} ({f1.avg:.4f})'.format(
                 i, len(val_loader), batch_time=batch_time,
                 loss=losses, f1=f1))
 
