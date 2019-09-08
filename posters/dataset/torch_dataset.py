@@ -12,6 +12,7 @@ from posters.util.dataset import load_dataset, get_image_path
 from posters.util.io import write_json_to_file, read_json_from_file
 
 IMG_SHAPE = (268,268,3)
+IMG_SHAPE_CHW = (3,268,268)
 
 def resnet_preprocess(image):
     image = image.astype(np.float32) / 255.
@@ -70,7 +71,7 @@ class MoviePosters(Dataset):
         # load image
         img_path = get_image_path(imdb_id, self.image_root)
         if not os.path.exists(img_path):
-            return torch.zeros(IMG_SHAPE), torch.zeros(len(self.genres))
+            return torch.zeros(IMG_SHAPE_CHW), torch.zeros(len(self.genres))
         img = imageio.imread(img_path)
         if len(img.shape) < 3:
             img = np.stack((img,img,img), axis=-1)
