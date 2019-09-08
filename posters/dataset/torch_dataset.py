@@ -70,7 +70,7 @@ class MoviePosters(Dataset):
         # load image
         img_path = get_image_path(imdb_id, self.image_root)
         if not os.path.exists(img_path):
-            return torch.zeros(IMG_SHAPE), torch.zeros(len(self.genres))
+            return torch.zeros(IMG_SHAPE).cuda(), torch.zeros(len(self.genres)).cuda()
         img = imageio.imread(img_path)
         if len(img.shape) < 3:
             img = np.stack((img,img,img), axis=-1)
