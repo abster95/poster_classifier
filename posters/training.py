@@ -45,8 +45,7 @@ def accuracy(output, target, thresh=0.7):
 
 def f_score(output, target, thresh=0.5, beta=1):
     with torch.no_grad():
-        prob = torch.sigmoid(output) #pylint: disable=no-member
-        prob = prob > thresh
+        prob = output > thresh
         label = target > thresh
 
         TP = (prob & label).sum(1).float()
@@ -56,8 +55,8 @@ def f_score(output, target, thresh=0.5, beta=1):
 
         precision = TP / (TP + FP + 1e-12)
         recall = TP / (TP + FN + 1e-12)
-        F2 = (1 + beta**2) * precision * recall / (beta**2 * precision + recall + 1e-12)
-        return F2.mean(0).item()
+        F1 = (1 + beta**2) * precision * recall / (beta**2 * precision + recall + 1e-12)
+        return F1.mean(0).item()
 
 def train(train_loader, model, criterion, optimizer, epoch):
     batch_time = AverageMeter()
@@ -91,15 +90,15 @@ def train(train_loader, model, criterion, optimizer, epoch):
         batch_time.update(time.time() - end)
         end = time.time()
 
-        f2 = f_score(output, target_var)
+        f1 = f_score(output, target_var)
 
         print('Epoch: [{0}][{1}/{2}]\t'
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                'F2 {f2:.4f}\t'.format(
+                'F1 {f1:.4f}\t'.format(
                 epoch, i, len(train_loader), batch_time=batch_time,
-                data_time=data_time, loss=losses, f2=f2))
+                data_time=data_time, loss=losses, f1=f1))
 
 def validate(val_loader, model, criterion):
     batch_time = AverageMeter()
@@ -123,13 +122,13 @@ def validate(val_loader, model, criterion):
         batch_time.update(time.time() - end)
         end = time.time()
 
-        f2 = f_score(output, target_var)
+        f1 = f_score(output, target_var)
         print('Test: [{0}/{1}]\t'
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                'F2 {f2:.4f}\t'.format(
+                'F1 {f1:.4f}\t'.format(
                 i, len(val_loader), batch_time=batch_time,
-                loss=losses, f2=f2))
+                loss=losses, f1=f1))
 
 if __name__ == "__main__":
 
