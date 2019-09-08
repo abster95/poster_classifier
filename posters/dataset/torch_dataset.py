@@ -11,7 +11,29 @@ from posters.dataset.summary import acceptable_genres_list
 from posters.util.dataset import load_dataset, get_image_path
 from posters.util.io import write_json_to_file, read_json_from_file
 
-IMG_SHAPE = (268,182,3)
+IMG_SHAPE = (268,268,3)
+
+def resnet_preprocess(image):
+    image = image.astype(np.float32) / 255.
+    means = [0.485, 0.456, 0.406]
+    stds = [0.229, 0.224, 0.225]
+
+    preprocessed_img = image.copy()
+    for i in range(3):
+        preprocessed_img[:, :, i] = preprocessed_img[:, :, i] - means[i]
+        preprocessed_img[:, :, i] = preprocessed_img[:, :, i] / stds[i]
+
+    preprocessed_img = preprocessed_img.transpose((2, 0, 1)).astype(np.float32)
+    return preprocessed_img
+
+def pad_to_fixed_shape(image, shape=IMG_SHAPE):
+    padded = np.zeros(shape, dtype=np.uint8)
+    h, w, _ = image.shape
+    padded[:h, :w, :] = image
+    return padded
+
+
+
 class MoviePosters(Dataset):
     def __init__(self, dataset_type: str, cutoff: int = 1000):
         dataset_dir = os.path.dirname(__file__)
@@ -44,15 +66,22 @@ class MoviePosters(Dataset):
     def __getitem__(self, index):
         # pylint: disable=no-member
         imdb_id = self.ids[index]
+
+        # load image
         img_path = get_image_path(imdb_id, self.image_root)
         if not os.path.exists(img_path):
             return torch.zeros(IMG_SHAPE), torch.zeros(len(acceptable_genres_list))
         img = imageio.imread(img_path)
         if len(img.shape) < 3:
             img = np.stack((img,img,img), axis=-1)
-        labels = np.squeeze(self.dataset.loc[self.dataset['imdbId'] == imdb_id, ['Genre']])
+        # preprocessing
+        img_padded = pad_to_fixed_shape(img)
+        preprocessed = torch.from_numpy(resnet_preprocess(img_padded))
+
+        # load labels
+        labels = np.squeeze(self.dataset.loc[self.dataset['imdbId'] == int(imdb_id), ['Genre']])
         labels = self._one_hot_genre(labels)
-        return img, labels
+        return preprocessed, labels
 
 
 def split_dataset(train_percent: float = 0.8):
@@ -70,4 +99,8 @@ def split_dataset(train_percent: float = 0.8):
     write_json_to_file(val_split, os.path.join(dataset_dir, 'val_ids.json'))
 
 if __name__ == "__main__":
-    split_dataset()
+    ds = MoviePosters('train')
+    for i in range(10):
+        img, labels = ds[i]
+        print(img.shape)
+        print(labels)
