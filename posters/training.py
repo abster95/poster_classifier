@@ -43,6 +43,22 @@ def accuracy(output, target, thresh=0.7):
         fn += (((1-thresholded)==target).sum(dim=-1).float() / num_classes).sum().item()
     return correct/total, fp/total, fn/total
 
+def f_score(output, target, thresh=0.5, beta=2):
+    with torch.no_grad():
+        prob = torch.sigmoid(output) #pylint: disable=no-member
+        prob = prob > thresh
+        label = target > thresh
+
+        TP = (prob & label).sum(1).float()
+        TN = ((~prob) & (~label)).sum(1).float()
+        FP = (prob & (~label)).sum(1).float()
+        FN = ((~prob) & label).sum(1).float()
+
+        precision = TP / (TP + FP + 1e-12)
+        recall = TP / (TP + FN + 1e-12)
+        F2 = (1 + beta**2) * precision * recall / (beta**2 * precision + recall + 1e-12)
+        return F2.mean(0).item()
+
 def train(train_loader, model, criterion, optimizer, epoch):
     batch_time = AverageMeter()
     data_time = AverageMeter()
@@ -75,18 +91,15 @@ def train(train_loader, model, criterion, optimizer, epoch):
         batch_time.update(time.time() - end)
         end = time.time()
 
-        accurate, fp, fn = accuracy(output, target_var)
+        f2 = f_score(output, target_var)
 
         print('Epoch: [{0}][{1}/{2}]\t'
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                'Accuracy {acc:.4f}\t'
-                'FP {fp:.4f}\t'
-                'FN {fn:.4f}'.format(
+                'F2 {f2:.4f}\t'.format(
                 epoch, i, len(train_loader), batch_time=batch_time,
-                data_time=data_time, loss=losses, acc=accurate,
-                fp=fp, fn=fn))
+                data_time=data_time, loss=losses, f2=f2))
 
 def validate(val_loader, model, criterion):
     batch_time = AverageMeter()
@@ -110,16 +123,13 @@ def validate(val_loader, model, criterion):
         batch_time.update(time.time() - end)
         end = time.time()
 
-        accurate, fp, fn = accuracy(output, target_var)
+        f2 = f_score(output, target)
         print('Test: [{0}/{1}]\t'
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                'Accuracy {acc:.4f}\t'
-                'FP {fp:.4f}\t'
-                'FN {fn:.4f}'.format(
+                'F2 {f2:.4f}\t'.format(
                 i, len(val_loader), batch_time=batch_time,
-                loss=losses, acc=accurate,
-                fp=fp, fn=fn))
+                loss=losses, f2=f2))
 
 if __name__ == "__main__":
 
