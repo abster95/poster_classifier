@@ -38,7 +38,7 @@ def accuracy(output, target, thresh=0.7):
         total += target.size(0)
         correct += (thresholded==target).sum().item()
         fp += (thresholded==(1-target)).sum().item()
-        fn += ((1-thresholded)==target).sum.item()
+        fn += ((1-thresholded)==target).sum().item()
     return correct/total, fp/total, fn/total
 
 def train(train_loader, model, criterion, optimizer, epoch):
