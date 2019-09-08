@@ -2,6 +2,7 @@ import torch
 from posters.dataset.torch_dataset import MoviePosters
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from torchvision.models import resnet18, resnet50, resnet101
 import torch.nn as nn
 from posters.model.classifier import Classifier
 import time
@@ -36,9 +37,10 @@ def accuracy(output, target, thresh=0.7):
     with torch.no_grad():
         thresholded = (output > thresh).float()
         total += target.size(0)
-        correct += (thresholded==target).sum().item()
-        fp += (thresholded==(1-target)).sum().item()
-        fn += ((1-thresholded)==target).sum().item()
+        num_classes = target.size(1)
+        correct += ((thresholded==target).sum(axis=-1).float() / num_classes).sum().item()
+        fp += ((thresholded==(1-target)).sum(axis=-1).float() / num_classes).sum().item()
+        fn += (((1-thresholded)==target).sum(axis=-1).float() / num_classes).sum().item()
     return correct/total, fp/total, fn/total
 
 def train(train_loader, model, criterion, optimizer, epoch):
@@ -79,7 +81,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                'Accuracy {acc:.4f}'
+                'Accuracy {acc:.4f}\t'
                 'FP {fp:.4f}\t'
                 'FN {fn:.4f}'.format(
                 epoch, i, len(train_loader), batch_time=batch_time,
@@ -128,8 +130,7 @@ if __name__ == "__main__":
         "The number of different genres shoud be the same in train and val"
 
     num_classes = len(train_data.genres)
-
-    model = Classifier(num_classes=num_classes)
+    model = Classifier(backbone=resnet50, num_classes=num_classes)
     model = model.cuda()
 
     train_loader = DataLoader(train_data,

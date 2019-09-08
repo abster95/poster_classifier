@@ -2,11 +2,11 @@ import torch
 import torch.nn as nn
 import torchvision
 
-from torchvision.models import resnet101
+from torchvision.models import resnet101, resnet18
 
 
 class Classifier(nn.Module):
-    def __init__(self, backbone=resnet101, imagenet_weights=True, num_classes=20):
+    def __init__(self, backbone=resnet18, imagenet_weights=True, num_classes=20):
         super(Classifier, self).__init__()
         self.backbone = backbone(pretrained=imagenet_weights)
         self.fc1 = nn.Linear(1000, 512)
