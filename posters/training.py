@@ -28,6 +28,11 @@ class AverageMeter(object):
         self.count += n
         self.avg = self.sum / self.count
 
+def softmax_cross_entropy_with_logits(logits, target):
+    # pylint: disable=no-member
+    loss = torch.sum(-target * torch.nn.functional.log_softmax(logits, -1), -1)
+    return loss.mean()
+
 def accuracy(output, target, thresh=0.7):
     """Computes the precision@k for the specified values of k"""
     correct = 0.0
@@ -104,6 +109,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
 def validate(val_loader, model, criterion):
     batch_time = AverageMeter()
     losses = AverageMeter()
+    f1 = AverageMeter()
 
     # switch to evaluate mode
     model.eval()
@@ -153,7 +159,7 @@ if __name__ == "__main__":
                             num_workers=NUM_WORKERS,
                             shuffle=False, pin_memory=True)
 
-    criterion = nn.BCEWithLogitsLoss().cuda()
+    criterion = softmax_cross_entropy_with_logits#nn.BCEWithLogitsLoss().cuda()
 
     optimizer = torch.optim.SGD(model.parameters(), lr=LR)
 

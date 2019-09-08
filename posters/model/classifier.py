@@ -14,7 +14,6 @@ class Classifier(nn.Module):
         self.fc3 = nn.Linear(128, 32)
         self.fc4 = nn.Linear(32, num_classes)
         self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()
 
     def forward(self, img_batch):
         x = self.backbone(img_batch)
@@ -25,6 +24,5 @@ class Classifier(nn.Module):
         x = self.fc3(x)
         x = self.relu(x)
         x = self.fc4(x)
-        x = self.sigmoid(x)
         return x
 
