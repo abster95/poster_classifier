@@ -7,7 +7,7 @@ import torch.nn as nn
 from posters.model.classifier import Classifier
 import time
 
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 NUM_WORKERS = 10
 LR = 1e-3
 
@@ -43,7 +43,7 @@ def accuracy(output, target, thresh=0.7):
         fn += (((1-thresholded)==target).sum(dim=-1).float() / num_classes).sum().item()
     return correct/total, fp/total, fn/total
 
-def f_score(output, target, thresh=0.5, beta=2):
+def f_score(output, target, thresh=0.5, beta=1):
     with torch.no_grad():
         prob = torch.sigmoid(output) #pylint: disable=no-member
         prob = prob > thresh
