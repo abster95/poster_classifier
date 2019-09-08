@@ -12,5 +12,6 @@ class Classifier(nn.Module):
         self.fc = nn.Linear(1000, num_classes)
 
     def forward(self, img_batch):
+        img_batch.cuda()
         x = self.backbone(img_batch)
         return self.fc(x)

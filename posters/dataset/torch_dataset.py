@@ -70,7 +70,7 @@ class MoviePosters(Dataset):
         # load image
         img_path = get_image_path(imdb_id, self.image_root)
         if not os.path.exists(img_path):
-            return torch.zeros(IMG_SHAPE).cuda(), torch.zeros(len(self.genres)).cuda()
+            return torch.zeros(IMG_SHAPE), torch.zeros(len(self.genres))
         img = imageio.imread(img_path)
         if len(img.shape) < 3:
             img = np.stack((img,img,img), axis=-1)
@@ -81,7 +81,7 @@ class MoviePosters(Dataset):
         # load labels
         labels = np.squeeze(self.dataset.loc[self.dataset['imdbId'] == int(imdb_id), ['Genre']])
         labels = self._one_hot_genre(labels)
-        return preprocessed.cuda(), labels.cuda()
+        return preprocessed, labels
 
 
 def split_dataset(train_percent: float = 0.8):
