@@ -1,5 +1,7 @@
 posters/dataset/images
 posters/dataset/dataset_download.log
+posters/ckpt
+posters/training*.log
 *.egg-info
 .vscode
 __pycache__

@@ -6,6 +6,9 @@ from torchvision.models import resnet18, resnet50, resnet101
 import torch.nn as nn
 from posters.model.classifier import Classifier
 import time
+import logging
+import os
+import numpy as np
 
 BATCH_SIZE = 16
 NUM_WORKERS = 10
@@ -99,7 +102,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
         f1.update(f_score(output, target_var))
 
-        print('Epoch: [{0}][{1}/{2}]\t'
+        logging.info('Epoch: [{0}][{1}/{2}]\t'
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
@@ -131,14 +134,25 @@ def validate(val_loader, model, criterion):
         end = time.time()
 
         f1.update(f_score(output, target_var))
-        print('Test: [{0}/{1}]\t'
+        logging.info('Test: [{0}/{1}]\t'
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                 'F1 {f1.val:.4f} ({f1.avg:.4f})'.format(
                 i, len(val_loader), batch_time=batch_time,
                 loss=losses, f1=f1))
+    return f1
 
 if __name__ == "__main__":
+    dirname = os.path.dirname(__file__)
+    logname = os.path.join(dirname,'training.log')
+    logging.basicConfig(filename=logname,
+                            filemode='w',
+                            format='%(message)s',
+                            datefmt='%H:%M:%S',
+                            level=logging.DEBUG)
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    logging.getLogger().addHandler(console)
 
     train_data = MoviePosters('train')
     val_data = MoviePosters('val')
@@ -163,7 +177,9 @@ if __name__ == "__main__":
     criterion = softmax_cross_entropy_with_logits#nn.BCEWithLogitsLoss().cuda()
 
     optimizer = torch.optim.SGD(model.parameters(), lr=LR)
-
+    best_f1 = np.inf
     for epoch in range(20):
         train(train_loader, model, criterion, optimizer, epoch)
-        validate(val_loader, model, criterion)
+        val_f1 = validate(val_loader, model, criterion)
+        save_path = os.path.join(dirname, 'ckpt', f'f1_{val_f1.avg}.ckpt')
+        torch.save(model.state_dict(), save_path)
