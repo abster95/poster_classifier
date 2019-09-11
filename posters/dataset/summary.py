@@ -24,7 +24,6 @@ def acceptable_genres_list(genres, cutoff: int = 1000):
     for genre, freq in genre_to_freq.items():
         if freq > cutoff:
             acceptable.append(genre)
-    acceptable.append('Unknown')
     return acceptable
 
 if __name__ == "__main__":

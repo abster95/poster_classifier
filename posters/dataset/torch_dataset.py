@@ -53,14 +53,11 @@ class MoviePosters(Dataset):
         # Acceptable genres + unknown
         one_hot = torch.zeros(len(self.genres)) # pylint: disable=no-member
         if not isinstance(labels, str):
-            one_hot[self.genre_to_id['Unknown']] = 1
             return one_hot
         labels = labels.split('|')
         for label in labels:
             if label in self.genre_to_id:
                 one_hot[self.genre_to_id[label]] = 1
-            else:
-                one_hot[self.genre_to_id['Unknown']] = 1
         return one_hot.squeeze_()
 
 
