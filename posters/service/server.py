@@ -14,8 +14,8 @@ ckpt = os.path.join(basedir, 'ckpt', 'best.ckpt')
 val_data = MoviePosters('val')
 
 model = Classifier(backbone=resnet50, imagenet_weights=False, num_classes=len(val_data.genres))
-model.load_state_dict(torch.load(ckpt))
 model.cpu()
+model.load_state_dict(torch.load(ckpt))
 model.eval()
 
 @app.route('/')
