@@ -15,7 +15,7 @@ val_data = MoviePosters('val')
 
 model = Classifier(backbone=resnet50, imagenet_weights=False, num_classes=len(val_data.genres))
 model.cpu()
-model.load_state_dict(torch.load(ckpt))
+model.load_state_dict(torch.load(ckpt, map_location=torch.device('cpu')))
 model.eval()
 
 @app.route('/')
