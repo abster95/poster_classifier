@@ -19,7 +19,10 @@ model.cpu()
 model.eval()
 
 @app.route('/')
-def hello_world():
+def hello():
+    return 'Hello world'
+
+def genre_by_pid():
     pid = request.args.get('pid')
     image_pth = os.path.join(basedir,'dataset','images', f'{pid}.jpg')
     image = imageio.imread(image_pth)
@@ -34,4 +37,4 @@ def hello_world():
     return f'{pid} : {preds}'
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=8080)
