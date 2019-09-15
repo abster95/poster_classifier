@@ -7,7 +7,7 @@ from posters.dataset.torch_dataset import MoviePosters, pad_to_fixed_shape, resn
 import torch
 import imageio
 import numpy as np
-import cv2
+from PIL import Image
 import base64
 
 IMG_H = 268
@@ -33,10 +33,11 @@ def predict():
     if not poster:
         return render_template('error.html', message="Seems like you didn't upload a file. Try again.")
     try:
-        image = imageio.imread(poster)
+        image = Image.open(poster)
     except Exception:
         return render_template('error.html', message="We could not read that file as image. Try again.")
-    image = cv2.resize(image, (IMG_W, IMG_H))
+    image = image.resize((IMG_W, IMG_H))
+    image = np.array(image)
     if len(image.shape) == 2 or image.shape[-1] == 1:
         image = np.stack((image,image,image), axis=-1)
     image = pad_to_fixed_shape(image)
@@ -65,4 +66,4 @@ def genre_by_pid():
     return f'{pid} : {preds}'
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=8080, debug=True)
