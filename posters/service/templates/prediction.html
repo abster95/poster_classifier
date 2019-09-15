@@ -1,0 +1,83 @@
+<html>
+<head>
+    <title>Prediction</title>
+    <style>
+        body {
+            font-family: Georgia, Times, serif;
+            color: white;
+            background-color: black;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: Helvetica, Arial
+        }
+
+        .myButton {
+            background-color: #44c767;
+            -moz-border-radius: 28px;
+            -webkit-border-radius: 28px;
+            border-radius: 28px;
+            border: 1px solid #18ab29;
+            display: inline-block;
+            cursor: pointer;
+            color: #ffffff;
+            font-family: Arial;
+            font-size: 17px;
+            padding: 16px 31px;
+            text-decoration: none;
+            text-shadow: 0px 1px 0px #2f6627;
+        }
+
+        .myButton:hover {
+            background-color: #5cbf2a;
+        }
+
+        .myButton:active {
+            position: relative;
+            top: 1px;
+        }
+
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .btn {
+            border: 2px solid gray;
+            color: gray;
+            background-color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Here's what we think:</h1>
+    <image src={{poster}}></image>
+    <table align="center">
+        {% for pred in preds %}
+        <tr>
+            <th> {{pred[0]}} </th>
+            <td> {{pred[1]}} </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <form method="GET" action="/">
+        <input type="submit" value="Try another one" class="myButton"><br />
+    </form>
+</body>
+
+</html>
