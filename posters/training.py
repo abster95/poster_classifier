@@ -10,9 +10,10 @@ import logging
 import os
 import numpy as np
 
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 NUM_WORKERS = 10
 LR = 1e-3
+summary = SummaryWriter('resnet18')
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -90,7 +91,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
         # measure accuracy and record loss
         losses.update(loss.item(), input.size(0))
-
+        summary.add_scalar('train_loss', losses.val, epoch*len(train_loader)+i)
         # compute gradient and do SGD step
         optimizer.zero_grad()
         loss.backward()
@@ -101,7 +102,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         end = time.time()
 
         f1.update(f_score(output, target_var))
-
+        summary.add_scalar('train_f1', f1.val, epoch*len(train_loader)+i)
         logging.info('Epoch: [{0}][{1}/{2}]\t'
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
@@ -110,7 +111,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
                 epoch, i, len(train_loader), batch_time=batch_time,
                 data_time=data_time, loss=losses, f1=f1))
 
-def validate(val_loader, model, criterion):
+def validate(val_loader, model, criterion, epoch):
     batch_time = AverageMeter()
     losses = AverageMeter()
     f1 = AverageMeter()
@@ -128,12 +129,13 @@ def validate(val_loader, model, criterion):
         output = model(input_var)
         loss = criterion(output, target_var)
         losses.update(loss.item(), input.size(0))
-
+        summary.add_scalar('val_loss', losses.val, epoch*len(val_loader)+i)
         # measure elapsed time
         batch_time.update(time.time() - end)
         end = time.time()
 
         f1.update(f_score(output, target_var))
+        summary.add_scalar('val_f1', f1.val, epoch*len(val_loader)+i)
         logging.info('Test: [{0}/{1}]\t'
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
@@ -161,7 +163,7 @@ if __name__ == "__main__":
         "The number of different genres shoud be the same in train and val"
 
     num_classes = len(train_data.genres)
-    model = Classifier(backbone=resnet50, num_classes=num_classes)
+    model = Classifier(backbone=resnet18, num_classes=num_classes)
     model = model.cuda()
 
     train_loader = DataLoader(train_data,
@@ -180,6 +182,6 @@ if __name__ == "__main__":
     best_f1 = np.inf
     for epoch in range(20):
         train(train_loader, model, criterion, optimizer, epoch)
-        val_f1 = validate(val_loader, model, criterion)
-        save_path = os.path.join(dirname, 'ckpt', f'f1_{val_f1.avg}.ckpt')
+        val_f1 = validate(val_loader, model, criterion, epoch)
+        save_path = os.path.join(dirname, 'ckpt', f'f1_{val_f1.avg:.2}.ckpt')
         torch.save(model.state_dict(), save_path)
